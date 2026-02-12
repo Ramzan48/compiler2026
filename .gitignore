@@ -1,0 +1,7 @@
+*.o
+lexer.cpp
+location.hh
+parser.cpp
+parser.hpp
+vsopc
+*.tar.xz
