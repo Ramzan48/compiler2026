@@ -1,0 +1,5 @@
+three := 3
+three
+four := 1 + three
+four + three
+
