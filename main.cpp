@@ -62,8 +62,7 @@ int main(int argc, char const *argv[])
     case Mode::LEX:
         res = driver.lex();
 
-        if (res == 0)
-            driver.print_tokens();
+        driver.print_tokens();
 
         return res;
 

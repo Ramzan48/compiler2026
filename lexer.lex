@@ -116,7 +116,7 @@ blank           [ \t\r]
 {id}                {
                         auto it = keywords.find(yytext);
                         if (it != keywords.end()){
-                            return Parser::symbol_type(it->second, yytext, loc);
+                            return Parser::symbol_type(it->second, loc);
                         }
                         if (isupper(yytext[0])){
                             return Parser::make_TYPE_IDENTIFIER(yytext, loc);
