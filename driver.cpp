@@ -78,8 +78,8 @@ static void print_token(Parser::symbol_type token)
     position pos = token.location.begin;
     Parser::token_type type = (Parser::token_type)token.type_get();
 
-    cout << pos.line << ":"
-         << pos.column << ":"
+    cout << pos.line << ","
+         << pos.column << ","
          << type_to_string.at(type);
 
     switch (type)
