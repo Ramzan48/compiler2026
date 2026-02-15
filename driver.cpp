@@ -14,6 +14,7 @@
 
 #include "driver.hpp"
 #include "parser.hpp"
+#include "ast.hpp"
 
 using namespace std;
 using namespace VSOP;
@@ -162,4 +163,9 @@ void Driver::print_tokens()
 {
     for (auto token : tokens)
         print_token(token);
+}
+
+void Driver::print_ast(){
+    if(program) program->print();
+    else cerr << "Error: No AST to print" << endl; 
 }

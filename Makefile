@@ -9,7 +9,8 @@ EXEC			= vsopc
 SRC				= main.cpp \
 				  driver.cpp \
 				  parser.cpp \
-				  lexer.cpp
+				  lexer.cpp \
+				  ast.cpp
 
 OBJ	  			= $(SRC:.cpp=.o)
 
@@ -23,6 +24,8 @@ driver.o: driver.hpp parser.hpp
 parser.o: driver.hpp parser.hpp
 
 lexer.o: driver.hpp parser.hpp
+
+ast.o: ast.hpp
 
 $(EXEC): $(OBJ)
 	$(CXX) -o $@ $(LDFLAGS) $(OBJ)
