@@ -1,4 +1,0 @@
-class Main {
-    x : int32;
-    main() : int32 { 42 }
-}

@@ -107,14 +107,18 @@ class_list:
     };
 
 class:
-    CLASS TYPE_IDENTIFIER LBRACE field_list method_list RBRACE{
+    CLASS TYPE_IDENTIFIER LBRACE field_list RBRACE{
+        $$ = new Class($2, "", *$4, std::vector<Method*>());
+        delete $4;
+    }
+    | CLASS TYPE_IDENTIFIER LBRACE field_list method_list RBRACE{
         $$ = new Class($2, "", *$4, *$5);
         delete $4;
         delete $5;
     }; /* DODO: extends */
 
 field_list:
-    {$$ = new std::vector<Field*>();}
+    /* empty */ {$$ = new std::vector<Field*>();}
     | field_list field{
         $1->push_back($2);
         $$ = $1;
@@ -125,7 +129,10 @@ field:
     }; /* DODO: assign */
 
 method_list:
-    {$$ = new std::vector<Method*>();}
+    method{
+        $$ = new std::vector<Method*>();
+        $$->push_back($1);
+    }
     | method_list method{
         $1->push_back($2);
         $$ = $1;
@@ -138,7 +145,7 @@ method:
     };
 
 formals:
-    {$$ = new std::vector<Formal*>();}
+    /* empty */ {$$ = new std::vector<Formal*>();}
     | formal_list{
         $$ = $1;
     };
@@ -158,7 +165,6 @@ formal:
     };
 
 expr:
-    /* Literals */
     INTEGER_LITERAL
     {
         $$ = new IntLiteral($1);
