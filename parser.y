@@ -17,6 +17,10 @@
         class Driver;
     }
     #include "ast.hpp"
+    struct ClassBody{
+        std::vector<Field*> fields;
+        std::vector<Method*> methods;
+    };
 }
 
 %parse-param {VSOP::Driver &driver}
@@ -79,9 +83,7 @@
 %type <Program*> program
 %type <std::vector<Class*>*> class_list
 %type <Class*> class
-%type <std::vector<Field*>*> field_list
 %type <Field*> field
-%type <std::vector<Method*>*> method_list
 %type <Method*> method
 %type <std::vector<Formal*>*> formal_list formals
 %type <Formal*> formal
@@ -89,6 +91,8 @@
 %type <std::string> type
 %type <std::vector<Expr*>*> expr_list
 %type <std::vector<Expr*>*> args
+%type <ClassBody*> class_body
+%type <std::vector<Expr*>*> block_exprs
 
 
 %nonassoc THEN
@@ -125,20 +129,23 @@ class_list:
     };
 
 class:
-    CLASS TYPE_IDENTIFIER LBRACE field_list RBRACE{
-        $$ = new Class($2, "", *$4, std::vector<Method*>());
+    CLASS TYPE_IDENTIFIER LBRACE class_body RBRACE {
+        $$ = new Class($2, "", $4->fields, $4->methods);
         delete $4;
-    } | CLASS TYPE_IDENTIFIER LBRACE field_list method_list RBRACE{
-        $$ = new Class($2, "", *$4, *$5);
-        delete $4;
-        delete $5;
-    } | CLASS TYPE_IDENTIFIER EXTENDS TYPE_IDENTIFIER LBRACE field_list RBRACE{
-        $$ = new Class($2, $4, *$6, std::vector<Method*>());
+    } | CLASS TYPE_IDENTIFIER EXTENDS TYPE_IDENTIFIER LBRACE class_body RBRACE{
+        $$ = new Class($2, $4, $6->fields, $6->methods);
         delete $6;
-    } | CLASS TYPE_IDENTIFIER EXTENDS TYPE_IDENTIFIER LBRACE field_list method_list RBRACE{
-        $$ = new Class($2, $4, *$6, *$7);
-        delete $6;
-        delete $7;
+    };
+
+class_body:
+    /* empty */ {
+        $$ = new ClassBody();
+    } | class_body field {
+        $1->fields.push_back($2);
+        $$ = $1;
+    } | class_body method{
+        $1->methods.push_back($2);
+        $$ = $1;
     };
 
 type:
@@ -148,13 +155,6 @@ type:
     | STRING {$$ = "string";}
     | UNIT {$$ = "unit";};
 
-field_list:
-    /* empty */ {$$ = new std::vector<Field*>();}
-    | field_list field{
-        $1->push_back($2);
-        $$ = $1;
-    };
-
 field:
     OBJECT_IDENTIFIER COLON type SEMICOLON{
         $$ = new Field($1, $3, nullptr);
@@ -162,19 +162,12 @@ field:
         $$ = new Field($1, $3, $5);
     };
 
-method_list:
-    method{
-        $$ = new std::vector<Method*>();
-        $$->push_back($1);
-    } | method_list method{
-        $1->push_back($2);
-        $$ = $1;
-    };
-
 method:
-    OBJECT_IDENTIFIER LPAR formals RPAR COLON type expr{
-        $$ = new Method($1, *$3, $6, $7);
+    OBJECT_IDENTIFIER LPAR formals RPAR COLON type LBRACE block_exprs RBRACE{
+        Block* body = new Block(*$8);
+        $$ = new Method($1, *$3, $6, body);
         delete $3;
+        delete $8;
     };
 
 formals:
@@ -220,7 +213,7 @@ expr:
     } | expr DOT OBJECT_IDENTIFIER LPAR args RPAR{
         $$ = new Call($1, $3, *$5);
         delete $5;
-    } | LBRACE expr_list RBRACE{
+    } | LBRACE block_exprs RBRACE{
         $$ = new Block(*$2);
         delete $2;
     } | OBJECT_IDENTIFIER ASSIGN expr{
@@ -263,13 +256,26 @@ expr:
         $$ = new BinaryOp("<=", $1, $3);
     } | expr AND expr{
         $$ = new BinaryOp("and", $1, $3);
+    } | SELF {
+        $$ = new Self();
+    } | LPAR RPAR{
+        $$ = new UnitExpr();
     };
 
 expr_list:
     expr{
         $$ = new std::vector<Expr*>();
         $$->push_back($1);
-    } | expr_list SEMICOLON expr{
+    } | expr_list COMMA expr{
+        $1->push_back($3);
+        $$ = $1;
+    };
+
+block_exprs:
+    expr{
+        $$ = new std::vector<Expr*>();
+        $$->push_back($1);
+    } | block_exprs SEMICOLON expr{
         $1->push_back($3);
         $$ = $1;
     };

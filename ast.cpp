@@ -2,6 +2,9 @@
 
 using namespace std;
 
+void Self::print() const {cout << "self";}
+void UnitExpr::print() const{cout << "()";}
+
 BinaryOp::BinaryOp(string op, Expr* left, Expr* right): op(op), left(left), right(right){}
 BinaryOp::~BinaryOp(){delete left; delete right;}
 void BinaryOp::print() const {

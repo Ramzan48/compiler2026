@@ -13,6 +13,16 @@ class ASTNode{
 
 class Expr: public ASTNode{};
 
+class Self: public Expr{
+    public:
+        void print() const override;
+};
+
+class UnitExpr: public Expr{
+    public:
+        void print() const override;
+};
+
 class BinaryOp: public Expr{
     public:
         std::string op;
