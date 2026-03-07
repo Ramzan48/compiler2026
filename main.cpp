@@ -58,7 +58,6 @@ int main(int argc, char const *argv[])
         res = driver.parse();
 
         if (res == 0)
-            //cout << "Result: " << driver.result << endl;
             driver.print_ast();
 
         return res;
