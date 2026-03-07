@@ -1,3 +1,0 @@
-three := 3
-seven := 2 * three + 1
-seven * seven

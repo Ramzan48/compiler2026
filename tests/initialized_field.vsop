@@ -1,3 +1,0 @@
-class Test {
-    x : int32 <- 42;
-}

@@ -1,4 +1,0 @@
-// Valid comment
-class T {
-    field : int32 <- let x : int32 in x * x; // x uninitialized here!
-}

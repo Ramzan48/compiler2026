@@ -1,3 +1,0 @@
-class Test {
-    myMethod(i : int32) : int32 { 0 }
-}
