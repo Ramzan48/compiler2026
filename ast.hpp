@@ -11,15 +11,22 @@ class ASTNode{
         virtual void print() const = 0;
 };
 
-class Expr: public ASTNode{};
+class Expr: public ASTNode{
+    public:
+        std::string type;
+        Expr(): type(""){}
+        virtual  ~Expr(){}
+};
 
 class Self: public Expr{
     public:
+        Self();
         void print() const override;
 };
 
 class UnitExpr: public Expr{
     public:
+        UnitExpr();
         void print() const override;
 };
 
@@ -52,10 +59,10 @@ class New: public Expr{
 class Let: public Expr{
     public:
         std::string name;
-        std::string type;
+        std::string var_type;
         Expr* init_expr;
         Expr* body;
-        Let(std::string name, std::string type, Expr* init_expr, Expr* body);
+        Let(std::string name, std::string var_type, Expr* init_expr, Expr* body);
         ~Let();
         void print() const override;
 };

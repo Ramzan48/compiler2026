@@ -15,6 +15,7 @@
 #include "driver.hpp"
 #include "parser.hpp"
 #include "ast.hpp"
+#include "type_checker.hpp"
 
 using namespace std;
 using namespace VSOP;
@@ -168,4 +169,9 @@ void Driver::print_tokens()
 void Driver::print_ast(){
     if(program) program->print();
     else cerr << "Error: No AST to print" << endl; 
+}
+
+bool VSOP::Driver::semantic_check(){
+    TypeChecker tc(source_file);
+    return tc.check(program);
 }

@@ -1,0 +1,5 @@
+class MyClass {
+    i : int32 <- 2;
+    theAnswer : int32 <- 40 + i;
+}
+class Main { main() : int32 { 0 } }

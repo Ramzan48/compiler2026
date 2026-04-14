@@ -8,12 +8,14 @@ using namespace std;
 enum class Mode
 {
     LEX,
-    PARSE
+    PARSE, 
+    SEM
 };
 
 static const map<string, Mode> flag_to_mode = {
     {"-l", Mode::LEX},
     {"-p", Mode::PARSE},
+    {"-c", Mode::SEM},
 };
 
 int main(int argc, char const *argv[])
@@ -61,6 +63,13 @@ int main(int argc, char const *argv[])
             driver.print_ast();
 
         return res;
+    case Mode::SEM:
+        res = driver.parse();
+        if(res == 0 && driver.semantic_check()){
+            driver.print_ast();
+            return 0;
+        }
+        return 1; 
     }
 
     return 0;

@@ -62,6 +62,8 @@ namespace VSOP
 
         void print_ast();
 
+        bool semantic_check();
+
         Program* program;
 
         ~Driver(){

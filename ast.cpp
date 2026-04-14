@@ -2,8 +2,20 @@
 
 using namespace std;
 
-void Self::print() const {cout << "self";}
-void UnitExpr::print() const{cout << "()";}
+Self::Self(){};
+void Self::print() const {
+    cout << "self";
+    if(!type.empty())
+        cout  << " : " << type;
+}
+
+UnitExpr::UnitExpr(){};
+void UnitExpr::print() const{
+    cout << "()";
+    if(!type.empty())
+        cout  << " : " << type;
+}
+
 
 BinaryOp::BinaryOp(string op, Expr* left, Expr* right): op(op), left(left), right(right){}
 BinaryOp::~BinaryOp(){delete left; delete right;}
@@ -13,6 +25,8 @@ void BinaryOp::print() const {
     cout << ", ";
     right->print();
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 UnaryOp::UnaryOp(std::string op, Expr* expr): op(op), expr(expr){}
@@ -21,21 +35,29 @@ void UnaryOp::print() const {
     cout << "UnOp(" << op << ", ";
     expr->print();
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 New::New(string type_name): type_name(type_name){}
-void New::print() const {cout << "New(" << type_name << ")";}
+void New::print() const {
+    cout << "New(" << type_name << ")";
+    if(!type.empty())
+        cout  << " : " << type;
+}
 
-Let::Let(string name, string type, Expr* init_expr, Expr* body): name(name), type(type), init_expr(init_expr), body(body) {}
+Let::Let(string name, string var_type, Expr* init_expr, Expr* body): name(name), var_type(var_type), init_expr(init_expr), body(body) {}
 Let::~Let(){if(init_expr) delete init_expr; delete body;}
 void Let::print() const {
-    cout << "Let(" << name << ", " << type << ", ";
+    cout << "Let(" << name << ", " << var_type << ", ";
     if(init_expr){
         init_expr->print();
         cout << ", ";
     }
     body->print();
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 While::While(Expr* cond, Expr* body): cond(cond), body(body) {}
@@ -46,6 +68,8 @@ void While::print() const {
     cout << ", ";
     body->print();
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 If::If(Expr* cond, Expr* then_expr, Expr* else_expr = nullptr): cond(cond), then_expr(then_expr), else_expr(else_expr) {}
@@ -60,6 +84,8 @@ void If::print()  const{
         else_expr->print();
     }
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 Assignment::Assignment(string name, Expr* expr): name(name), expr(expr){}
@@ -68,10 +94,16 @@ void Assignment::print() const{
     cout << "Assign(" << name << ", ";
     expr->print();
     cout << ")";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 Variable::Variable(string name): name(name){}
-void Variable::print() const{cout << name;}
+void Variable::print() const{
+    cout << name;
+    if(!type.empty())
+        cout  << " : " << type;
+}
 
 Block::Block(vector<Expr*> exprs): exprs(exprs){};
 Block::~Block(){for(auto e: exprs) delete e;}
@@ -82,6 +114,8 @@ void Block::print() const {
         exprs[i]->print();
     }
     cout << "]";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 Call::Call(Expr* object, string method_name, vector<Expr*> args): object(object), method_name(method_name), args(args){}
@@ -92,22 +126,35 @@ void Call::print() const{
     else cout << "self";
     cout << ", " << method_name << ", [";
     for(size_t i=0; i < args.size(); i++){
-        if(i>0) cout << ", ";
+        if(i > 0) cout << ", ";
             args[i]->print();
     }
     cout << "])";
+    if(!type.empty())
+        cout  << " : " << type;
 }
 
 
 StringLiteral::StringLiteral(string value): value(value){}
-void StringLiteral::print() const{cout << value;}
+void StringLiteral::print() const{
+    cout << value;
+    if(!type.empty())
+        cout  << " : " << type;
+}
 
 IntLiteral::IntLiteral(int value): value(value){}
-void IntLiteral::print() const{cout << value;}
+void IntLiteral::print() const{
+    cout << value;
+    if(!type.empty())
+        cout  << " : " << type;
+}
 
 BoolLiteral::BoolLiteral(bool value): value(value){}
-void BoolLiteral::print() const{cout << (value ? "true" : "false");}
-
+void BoolLiteral::print() const{
+    cout << (value ? "true" : "false");
+    if(!type.empty())
+        cout  << " : " << type;
+}
 
 
 Formal::Formal(string name, string type): name(name), type(type){}
