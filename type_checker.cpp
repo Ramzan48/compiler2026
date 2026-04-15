@@ -30,11 +30,11 @@ bool TypeChecker::check(Program* program){
 void TypeChecker::collect_classes(Program *program){
     for(auto cls: program->classes){
         if(class_table.has_class(cls->name)){
-            error(1, 1, "redefinition of class " + cls->name);
+            error(cls->line, cls->col, "redefinition of class " + cls->name);
             continue;
         }
         if(cls->name == "Object") {
-            error(1, 1, "cannot redefine class Object");
+            error(cls->line, cls->col, "cannot redefine class Object");
             continue;
         }
         Class_info info;
@@ -51,10 +51,10 @@ void TypeChecker::collect_classes(Program *program){
 void TypeChecker::check_inheritance(Program *program){
     for(auto cls: program->classes){
         if(!cls->parent.empty() && !class_table.has_class(cls->parent))
-            error(1, 1, "class " + cls->name + " extends unknown class " + cls->parent);
+            error(cls->line, cls->col, "class " + cls->name + " extends unknown class " + cls->parent);
         
         if(class_table.has_cycle(cls->name))
-            error(1, 1, "class " + cls->name + " involved in inheritance cycle");
+            error(cls->line, cls->col, "class " + cls->name + " involved in inheritance cycle");
     }
 }
 
@@ -65,7 +65,7 @@ void TypeChecker::collect_members(Program *program){
 
         for(auto field: cls->fields){
             if(info->fields.find(field->name) != info->fields.end()) {
-                error(1, 1, "duplicate field " + field->name + " in class " + cls->name);
+                error(field->line, field->col, "duplicate field " + field->name + " in class " + cls->name);
                 continue;
             }
 
@@ -73,11 +73,11 @@ void TypeChecker::collect_members(Program *program){
             if(!cls->parent.empty() && cls->parent != "Object"){
                 Class_info* parent_info = class_table.get_class(cls->parent);
                 if(parent_info && parent_info->has_field(field->name, class_table.get_classes()))
-                    error(1, 1, "redefinition of field " + field->name);
+                    error(field->line, field->col, "redefinition of field " + field->name);
             }
 
             if(field->type != "int32" && field->type != "bool" && field->type != "string" && field->type != "unit" && !class_table.has_class(field->type))
-                error(1, 1, "field " + field->name + " has undefined type " + field->type);
+                error(field->line, field->col, "field " + field->name + " has undefined type " + field->type);
 
             Field_info field_info;
             field_info.name = field->name;
@@ -88,7 +88,7 @@ void TypeChecker::collect_members(Program *program){
 
         for(auto method: cls->methods){
             if(info->methods.find(method->name) != info->methods.end()) {
-                error(1, 1, "duplicate method " + method->name + " in class " + cls->name);
+                error(method->line, method->col, "duplicate method " + method->name + " in class " + cls->name);
                 continue;
             }
 
@@ -100,12 +100,12 @@ void TypeChecker::collect_members(Program *program){
             set<string> formal_names;
             for(auto formal: method->formals){
                 if(formal_names.find(formal->name) != formal_names.end()){
-                    error(1, 1, "duplicate formal name " + formal->name);
+                    error(formal->line, formal->col, "duplicate formal name " + formal->name);
                     continue;
                 }
                 formal_names.insert(formal->name);
                 if(formal->type != "int32" && formal->type != "bool" && formal->type != "string" && formal->type != "unit" && !class_table.has_class(formal->type))
-                    error(1, 1, "formal " + formal->name + " has unknwon type " + formal->type);
+                    error(formal->line, formal->col, "formal " + formal->name + " has unknwon type " + formal->type);
 
                 Formal_info formal_info;
                 formal_info.name = formal->name;
@@ -114,7 +114,7 @@ void TypeChecker::collect_members(Program *program){
             }
 
             if(method->return_type != "int32" && method->return_type != "bool" && method->return_type != "string" && method->return_type != "unit" && !class_table.has_class(method->return_type))
-                error(1, 1, "method " + method->name + " has undefined return type " + method->return_type);
+                error(method->line, method->col, "method " + method->name + " has undefined return type " + method->return_type);
             
             info->methods[method->name] = method_info;
             
@@ -125,18 +125,18 @@ void TypeChecker::collect_members(Program *program){
             if(!parent_method) continue;
 
             if(method_info.return_type != parent_method->return_type){
-                error(1, 1, "overriding method " + method_info.name + " has different return type");
+                error(method->line, method->col, "overriding method " + method_info.name + " has different return type");
                 continue;
             }
 
             if(method_info.formals.size() != parent_method->formals.size()){
-                error(1, 1, "overriding method " + method_info.name + " has different number of parameters");
+                error(method->line, method->col, "overriding method " + method_info.name + " has different number of parameters");
                 continue;
             }
 
             for(size_t i = 0; i < method_info.formals.size(); i++) {
                 if(method_info.formals[i].type != parent_method->formals[i].type){
-                    error(1, 1, "overriding method " + method_info.name + " has different parameter types");
+                    error(method->line, method->col, "overriding method " + method_info.name + " has different parameter types");
                     continue;
                 }
             }
@@ -153,17 +153,17 @@ void TypeChecker::check_main_class(){
 
     Method_info* main_method = main_class->get_method("main", class_table.get_classes());
     if(!main_method){
-        error(1, 1, "no main() method inside Main class");
+        error(main_class->line, main_class->col, "no main() method inside Main class");
         return;
     }
 
     if(!main_method->formals.empty()){
-        error(1, 1, "main() method must be empty");
+        error(main_class->line, main_class->col, "main() method must be empty");
         return;
     }
 
     if(main_method->return_type != "int32") {
-        error(1, 1, "main() method must return int32");
+        error(main_class->line, main_class->col, "main() method must return int32");
         return;
     }
 }
@@ -179,7 +179,7 @@ void TypeChecker::type_check(Program *program){
             string init_type = type_check_expr(field->init_expr, scope);
             is_in_field_init = false;
             if(!class_table.is_subtype(init_type, field->type))
-                error(1, 1, "field " + field->name + " initializer type " + init_type + " is not the same as declared type " + field->type);
+                error(field->line, field->col, "field " + field->name + " initializer type " + init_type + " is not the same as declared type " + field->type);
         }
 
         for(auto method: cls->methods){
@@ -189,7 +189,7 @@ void TypeChecker::type_check(Program *program){
 
             string body_type = type_check_expr(method->body, scope);
             if(!class_table.is_subtype(body_type, method->return_type))
-                error(1, 1, "method " + method->name + " body type " + body_type + " is not the same as return type " + method->return_type);
+                error(method->line, method->col, "method " + method->name + " body type " + body_type + " is not the same as return type " + method->return_type);
         }
     }
 }
@@ -218,7 +218,7 @@ std::string TypeChecker::type_check_expr(Expr *expr, Scope &scope){
     }
     if(Self* self = dynamic_cast<Self*>(expr)){
         if(is_in_field_init)
-            error(1, 1, "can't use self in field initializers");
+            error(self->line, self->col, "can't use self in field initializers");
         self->type = current_class;
         return current_class;
     }
@@ -262,8 +262,8 @@ std::string TypeChecker::type_check_variable(Variable *var, Scope &scope){
     Class_info* cls = class_table.get_class(current_class);
     if(cls && cls->has_field(var->name, class_table.get_classes())){
         if(is_in_field_init){
-            error(1, 1, "cannot use class fields in field initializers.");
-            error(1, 1, "use of unbound variable " + var->name);
+            error(var->line, var->col, "cannot use class fields in field initializers.");
+            error(var->line, var->col, "use of unbound variable " + var->name);
             var->type = "Object";
             return "Object";
         }
@@ -273,7 +273,7 @@ std::string TypeChecker::type_check_variable(Variable *var, Scope &scope){
     }
 
 
-    error(1, 1, "use of unbound variable " + var->name);
+    error(var->line, var->col, "use of unbound variable " + var->name);
     var->type = "Object";
     return "Object";
 }
@@ -284,27 +284,27 @@ std::string TypeChecker::type_check_binary_op(BinaryOp *binop, Scope &scope){
 
     if(binop->op == "+" || binop->op == "-" || binop->op == "*" || binop->op == "/" || binop->op == "^"){
         if(left_type != "int32" || right_type != "int32")
-            error(1, 1, "must be int32, found " + left_type + " and " + right_type);
+            error(binop->line, binop->col, "must be int32, found " + left_type + " and " + right_type);
         binop->type = "int32";
         return "int32";
     }
 
     if(binop->op == "<" || binop->op == "<="){
         if(left_type != "int32" || right_type != "int32")
-            error(1, 1, "must be int32, found " + left_type + " and " + right_type);
+            error(binop->line, binop->col, "must be int32, found " + left_type + " and " + right_type);
         binop->type = "bool";
         return "bool";
     }
 
     if(binop->op == "="){
         if(left_type != right_type)
-            error(1, 1, "equality needs sames types, found " + left_type + " and " + right_type);
+            error(binop->line, binop->col, "equality needs sames types, found " + left_type + " and " + right_type);
         binop->type = "bool";
         return "bool";
     }
     if(binop->op == "and"){
         if(left_type != "bool" || right_type != "bool")
-            error(1, 1, "must be bool, found " + left_type + " and " + right_type);
+            error(binop->line, binop->col, "must be bool, found " + left_type + " and " + right_type);
         binop->type = "bool";
         return "bool";
     }
@@ -318,14 +318,14 @@ std::string TypeChecker::type_check_unary_op(UnaryOp *unop, Scope &scope){
 
     if(unop->op == "-"){
         if(expr_type != "int32")
-            error(1, 1, "unary minus needs int32, found " + expr_type);
+            error(unop->line, unop->col, "unary minus needs int32, found " + expr_type);
         unop->type = "int32";
         return "int32";
     }
 
     if(unop->op == "not"){
         if(expr_type != "bool")
-            error(1, 1, "not needs bool, found " + expr_type);
+            error(unop->line, unop->col, "not needs bool, found " + expr_type);
         unop->type = "bool";
         return "bool";
     }
@@ -333,7 +333,7 @@ std::string TypeChecker::type_check_unary_op(UnaryOp *unop, Scope &scope){
     if(unop->op == "isnull"){
         // submit platform 50, fix simply in vsopc manual p9
         if (expr_type == "int32" || expr_type == "bool" || expr_type == "string" || expr_type == "unit")
-            error(1, 1, "this expression has type " + expr_type + ", but expected type was Object");
+            error(unop->line, unop->col, "this expression has type " + expr_type + ", but expected type was Object");
         unop->type = "bool";
         return "bool";
     }
@@ -350,14 +350,14 @@ std::string TypeChecker::type_check_assignment(Assignment *assign, Scope &scope)
         if(cls && cls->has_field(assign->name, class_table.get_classes()))
             var_type = cls->get_field_type(assign->name, class_table.get_classes());
         else{
-            error(1, 1, "assignment to unknown variable " + assign->name);
+            error(assign->line, assign->col, "assignment to unknown variable " + assign->name);
             var_type = "Object";
         }
     }
 
     string expr_type = type_check_expr(assign->expr, scope);
     if(!class_table.is_subtype(expr_type, var_type))
-        error(1, 1, "can't assign " + expr_type + " to " + assign->name + " of type " + var_type);
+        error(assign->line, assign->col, "can't assign " + expr_type + " to " + assign->name + " of type " + var_type);
     assign->type = expr_type;
     return expr_type;
 }
@@ -378,7 +378,7 @@ std::string TypeChecker::type_check_block(Block *block, Scope &scope){
 std::string TypeChecker::type_check_if(If *ifexpr, Scope &scope){
     string cond_type = type_check_expr(ifexpr->cond, scope);
     if(cond_type != "bool")
-        error(1, 1, "if condition must be bool, found " + cond_type);
+        error(ifexpr->line, ifexpr->col, "if condition must be bool, found " + cond_type);
     
     string then_type = type_check_expr(ifexpr->then_expr, scope);
     if(ifexpr->else_expr){
@@ -395,7 +395,7 @@ std::string TypeChecker::type_check_if(If *ifexpr, Scope &scope){
 std::string TypeChecker::type_check_while(While *whileexpr, Scope &scope){
     string cond_type = type_check_expr(whileexpr->cond, scope);
     if(cond_type != "bool")
-        error(1, 1, "while condition must be bool, found " + cond_type);
+        error(whileexpr->line, whileexpr->col, "while condition must be bool, found " + cond_type);
     type_check_expr(whileexpr->body, scope);
     whileexpr->type = "unit";
     return "unit";
@@ -403,12 +403,12 @@ std::string TypeChecker::type_check_while(While *whileexpr, Scope &scope){
 
 std::string TypeChecker::type_check_let(Let *let, Scope &scope){
     if(let->var_type != "int32" && let->var_type != "bool" && let->var_type != "string" && let->var_type != "unit" && !class_table.has_class(let->var_type))
-        error(1, 1, "let variable " + let->name + " has unknown type " + let->var_type);
+        error(let->line, let->col, "let variable " + let->name + " has unknown type " + let->var_type);
     
     if(let->init_expr){
         string init_type = type_check_expr(let->init_expr, scope);
         if(!class_table.is_subtype(init_type, let->var_type))
-            error(1, 1, "let initializer type " + init_type + " is not compatible with declared type " + let->var_type);
+            error(let->line, let->col, "let initializer type " + init_type + " is not compatible with declared type " + let->var_type);
     }
 
     Scope body_scope(&scope);
@@ -420,7 +420,7 @@ std::string TypeChecker::type_check_let(Let *let, Scope &scope){
 
 std::string TypeChecker::type_check_new(New *newexpr){
     if(!class_table.has_class(newexpr->type_name)){
-        error(1, 1, "new expression references unknown class " + newexpr->type_name);
+        error(newexpr->line, newexpr->col, "new expression references unknown class " + newexpr->type_name);
         newexpr->type = "Object";
         return "Object";
     }
@@ -435,9 +435,9 @@ std::string TypeChecker::type_check_call(Call *call, Scope &scope){
         object_type = type_check_expr(call->object, scope);
     else{
         if(is_in_field_init){ // fix submission platform 70.
-            error(1, 1, "cannot find method " + call->method_name + " in type <invalid-type>.");
-            error(1, 1, "cannot use self in field initializer.");
-            error(1, 1, "use of unbound variable self.");
+            error(call->line, call->col, "cannot find method " + call->method_name + " in type <invalid-type>.");
+            error(call->line, call->col, "cannot use self in field initializer.");
+            error(call->line, call->col, "use of unbound variable self.");
             
             call->type = "Object";
             return "Object";
@@ -449,20 +449,20 @@ std::string TypeChecker::type_check_call(Call *call, Scope &scope){
 
     Class_info* cls = class_table.get_class(object_type);
     if(!cls){
-        error(1, 1, "call on unknown type " + object_type);
+        error(call->line, call->col, "call on unknown type " + object_type);
         call->type = "Object";
         return "Object";
     }
 
     Method_info* method = cls->get_method(call->method_name, class_table.get_classes());
     if(!method){
-        error(1, 1, "class " + object_type + " has no method " + call->method_name);
+        error(call->line, call->col, "class " + object_type + " has no method " + call->method_name);
         call->type = "Object";
         return "Object";
     }
 
     if(call->args.size() != method->formals.size()){
-        error(1, 1, "method " + call->method_name + " expects " + to_string(method->formals.size()) + " arguments, got " + to_string(call->args.size()));
+        error(call->line, call->col, "method " + call->method_name + " expects " + to_string(method->formals.size()) + " arguments, got " + to_string(call->args.size()));
         call->type = method->return_type;
         return method->return_type;
     }
@@ -470,17 +470,10 @@ std::string TypeChecker::type_check_call(Call *call, Scope &scope){
     for(size_t i = 0; i < call->args.size(); i++){
         string arg_type = type_check_expr(call->args[i], scope);
         if(!class_table.is_subtype(arg_type, method->formals[i].type))
-            error(1, 1, "argument " + to_string(i+1) + " from " + call->method_name + " has type " + arg_type + ", expected " + method->formals[i].type);
+            error(call->line, call->col, "argument " + to_string(i+1) + " from " + call->method_name + " has type " + arg_type + ", expected " + method->formals[i].type);
     }
 
     call->type = method->return_type;
     return method->return_type;
 
 }
-
-// void TypeChecker::get_expr_position(Expr* expr, int& line, int& col)
-// {
-//     // TODO: add position tracking.
-//     line = 1;
-//     col = 1;
-// }

@@ -2,14 +2,14 @@
 
 using namespace std;
 
-Self::Self(){};
+Self::Self(int line, int col): Expr(line, col){};
 void Self::print() const {
     cout << "self";
     if(!type.empty())
         cout  << " : " << type;
 }
 
-UnitExpr::UnitExpr(){};
+UnitExpr::UnitExpr(int line, int col): Expr(line, col){};
 void UnitExpr::print() const{
     cout << "()";
     if(!type.empty())
@@ -17,7 +17,7 @@ void UnitExpr::print() const{
 }
 
 
-BinaryOp::BinaryOp(string op, Expr* left, Expr* right): op(op), left(left), right(right){}
+BinaryOp::BinaryOp(string op, Expr* left, Expr* right, int line, int col): Expr(line, col), op(op), left(left), right(right){}
 BinaryOp::~BinaryOp(){delete left; delete right;}
 void BinaryOp::print() const {
     cout << "BinOp(" << op << ", ";
@@ -29,7 +29,7 @@ void BinaryOp::print() const {
         cout  << " : " << type;
 }
 
-UnaryOp::UnaryOp(std::string op, Expr* expr): op(op), expr(expr){}
+UnaryOp::UnaryOp(std::string op, Expr* expr, int line, int col): Expr(line, col), op(op), expr(expr){}
 UnaryOp::~UnaryOp(){delete expr;}
 void UnaryOp::print() const {
     cout << "UnOp(" << op << ", ";
@@ -39,14 +39,14 @@ void UnaryOp::print() const {
         cout  << " : " << type;
 }
 
-New::New(string type_name): type_name(type_name){}
+New::New(string type_name, int line, int col): Expr(line, col), type_name(type_name){}
 void New::print() const {
     cout << "New(" << type_name << ")";
     if(!type.empty())
         cout  << " : " << type;
 }
 
-Let::Let(string name, string var_type, Expr* init_expr, Expr* body): name(name), var_type(var_type), init_expr(init_expr), body(body) {}
+Let::Let(string name, string var_type, Expr* init_expr, Expr* body, int line, int col): Expr(line, col), name(name), var_type(var_type), init_expr(init_expr), body(body) {}
 Let::~Let(){if(init_expr) delete init_expr; delete body;}
 void Let::print() const {
     cout << "Let(" << name << ", " << var_type << ", ";
@@ -60,7 +60,7 @@ void Let::print() const {
         cout  << " : " << type;
 }
 
-While::While(Expr* cond, Expr* body): cond(cond), body(body) {}
+While::While(Expr* cond, Expr* body, int line, int col): Expr(line, col), cond(cond), body(body){}
 While::~While(){delete cond; delete body;}
 void While::print() const {
     cout << "While(";
@@ -72,7 +72,7 @@ void While::print() const {
         cout  << " : " << type;
 }
 
-If::If(Expr* cond, Expr* then_expr, Expr* else_expr = nullptr): cond(cond), then_expr(then_expr), else_expr(else_expr) {}
+If::If(Expr* cond, Expr* then_expr, Expr* else_expr = nullptr, int line, int col): Expr(line, col), cond(cond), then_expr(then_expr), else_expr(else_expr){}
 If::~If(){delete cond; delete then_expr; delete else_expr;}
 void If::print()  const{
     cout << "If(";
@@ -88,7 +88,7 @@ void If::print()  const{
         cout  << " : " << type;
 }
 
-Assignment::Assignment(string name, Expr* expr): name(name), expr(expr){}
+Assignment::Assignment(string name, Expr* expr, int line, int col): Expr(line, col), name(name), expr(expr){}
 Assignment::~Assignment(){delete expr;}
 void Assignment::print() const{
     cout << "Assign(" << name << ", ";
@@ -98,14 +98,14 @@ void Assignment::print() const{
         cout  << " : " << type;
 }
 
-Variable::Variable(string name): name(name){}
+Variable::Variable(string name, int line, int col): Expr(line, col), name(name){}
 void Variable::print() const{
     cout << name;
     if(!type.empty())
         cout  << " : " << type;
 }
 
-Block::Block(vector<Expr*> exprs): exprs(exprs){};
+Block::Block(vector<Expr*> exprs, int line, int col): Expr(line, col), exprs(exprs){};
 Block::~Block(){for(auto e: exprs) delete e;}
 void Block::print() const {
     cout << "[";
@@ -118,7 +118,7 @@ void Block::print() const {
         cout  << " : " << type;
 }
 
-Call::Call(Expr* object, string method_name, vector<Expr*> args): object(object), method_name(method_name), args(args){}
+Call::Call(Expr* object, string method_name, vector<Expr*> args, int line, int col): Expr(line, col), object(object), method_name(method_name), args(args){}
 Call::~Call(){if(object) delete object; for(auto a: args) delete a;}
 void Call::print() const{
     cout << "Call(";
@@ -135,21 +135,21 @@ void Call::print() const{
 }
 
 
-StringLiteral::StringLiteral(string value): value(value){}
+StringLiteral::StringLiteral(string value, int line, int col): Expr(line, col), value(value){}
 void StringLiteral::print() const{
     cout << value;
     if(!type.empty())
         cout  << " : " << type;
 }
 
-IntLiteral::IntLiteral(int value): value(value){}
+IntLiteral::IntLiteral(int value, int line, int col): Expr(line, col), value(value){}
 void IntLiteral::print() const{
     cout << value;
     if(!type.empty())
         cout  << " : " << type;
 }
 
-BoolLiteral::BoolLiteral(bool value): value(value){}
+BoolLiteral::BoolLiteral(bool value, int line, int col): Expr(line, col), value(value){}
 void BoolLiteral::print() const{
     cout << (value ? "true" : "false");
     if(!type.empty())
@@ -157,12 +157,12 @@ void BoolLiteral::print() const{
 }
 
 
-Formal::Formal(string name, string type): name(name), type(type){}
+Formal::Formal(string name, string type, int line, int col): ASTNode(line, col), name(name), type(type){}
 void Formal::print() const{cout << name << " : " << type;}
 
 
 
-Field::Field(string name, string type, Expr* init_expr = nullptr): name(name), type(type), init_expr(init_expr){}
+Field::Field(string name, string type, Expr* init_expr = nullptr, int line, int col): ASTNode(line, col), name(name), type(type), init_expr(init_expr){}
 Field::~Field(){if(init_expr) delete init_expr;}
 void Field::print() const{
     cout << "Field(" << name << ", " << type;
@@ -175,7 +175,7 @@ void Field::print() const{
 
 
 
-Method::Method(string name, vector<Formal*> formals, string return_type, Expr* body): name(name), formals(formals), return_type(return_type), body(body){}
+Method::Method(string name, vector<Formal*> formals, string return_type, Expr* body, int line, int col): ASTNode(line, col), name(name), formals(formals), return_type(return_type), body(body){}
 Method::~Method(){
     for(auto f: formals) delete f;
     if(body) delete body;
@@ -193,7 +193,7 @@ void Method::print() const{
 
 
 
-Class::Class(string name, string parent, vector<Field*> fields, vector<Method*> methods) : name(name), parent(parent), fields(fields), methods(methods){}
+Class::Class(string name, string parent, vector<Field*> fields, vector<Method*> methods, int line, int col): ASTNode(line, col), name(name), parent(parent), fields(fields), methods(methods){}
 Class::~Class(){
     for(auto f: fields) delete f;
     for(auto m: methods) delete m;

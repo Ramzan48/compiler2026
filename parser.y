@@ -130,10 +130,10 @@ class_list:
 
 class:
     CLASS TYPE_IDENTIFIER LBRACE class_body RBRACE {
-        $$ = new Class($2, "", $4->fields, $4->methods);
+        $$ = new Class($2, "", $4->fields, $4->methods, @1.begin.line, @1.begin.column);
         delete $4;
     } | CLASS TYPE_IDENTIFIER EXTENDS TYPE_IDENTIFIER LBRACE class_body RBRACE{
-        $$ = new Class($2, $4, $6->fields, $6->methods);
+        $$ = new Class($2, $4, $6->fields, $6->methods, @1.begin.line, @1.begin.column);
         delete $6;
     };
 
@@ -157,15 +157,15 @@ type:
 
 field:
     OBJECT_IDENTIFIER COLON type SEMICOLON{
-        $$ = new Field($1, $3, nullptr);
+        $$ = new Field($1, $3, nullptr, @1.begin.line, @1.begin.column);
     } | OBJECT_IDENTIFIER COLON type ASSIGN expr SEMICOLON{
-        $$ = new Field($1, $3, $5);
+        $$ = new Field($1, $3, $5, @1.begin.line, @1.begin.column);
     };
 
 method:
     OBJECT_IDENTIFIER LPAR formals RPAR COLON type LBRACE block_exprs RBRACE{
-        Block* body = new Block(*$8);
-        $$ = new Method($1, *$3, $6, body);
+        Block* body = new Block(*$8, @7.begin.line, @7.begin.column);
+        $$ = new Method($1, *$3, $6, body, @1.begin.line, @1.begin.column);
         delete $3;
         delete $8;
     };
@@ -187,7 +187,7 @@ formal_list:
 
 formal:
     OBJECT_IDENTIFIER COLON type{
-        $$ = new Formal($1, $3);
+        $$ = new Formal($1, $3, @1.begin.line, @1.begin.column);
     };
 
 args:
@@ -198,68 +198,68 @@ args:
 
 expr:
     INTEGER_LITERAL{
-        $$ = new IntLiteral($1);
+        $$ = new IntLiteral($1, @1.begin.line, @1.begin.column);
     } | STRING_LITERAL{
-        $$ = new StringLiteral($1);
+        $$ = new StringLiteral($1, @1.begin.line, @1.begin.column);
     } | TRUE{
-        $$ = new BoolLiteral(true);
+        $$ = new BoolLiteral(true, @1.begin.line, @1.begin.column);
     } | FALSE{
-        $$ = new BoolLiteral(false);
+        $$ = new BoolLiteral(false, @1.begin.line, @1.begin.column);
     } | OBJECT_IDENTIFIER{
-        $$ = new Variable($1);
+        $$ = new Variable($1, @1.begin.line, @1.begin.column);
     } | OBJECT_IDENTIFIER LPAR args RPAR{
-        $$ = new Call(nullptr, $1, *$3);
+        $$ = new Call(nullptr, $1, *$3, @1.begin.line, @1.begin.column);
         delete $3;
     } | expr DOT OBJECT_IDENTIFIER LPAR args RPAR{
-        $$ = new Call($1, $3, *$5);
+        $$ = new Call($1, $3, *$5, @3.begin.line, @3.begin.column);
         delete $5;
     } | LBRACE block_exprs RBRACE{
-        $$ = new Block(*$2);
+        $$ = new Block(*$2, @1.begin.line, @1.begin.column);
         delete $2;
     } | OBJECT_IDENTIFIER ASSIGN expr{
-        $$ = new Assignment($1, $3);
+        $$ = new Assignment($1, $3, @1.begin.line, @1.begin.column);
     } | LPAR expr RPAR{
         $$ = $2;
     } | IF expr THEN expr{
-        $$ = new If($2, $4, nullptr);
+        $$ = new If($2, $4, nullptr, @1.begin.line, @1.begin.column);
     } | IF expr THEN expr ELSE expr{
-        $$ = new If($2, $4, $6);
+        $$ = new If($2, $4, $6, @1.begin.line, @1.begin.column);
     } | WHILE expr DO expr{
-        $$ = new While($2, $4);
+        $$ = new While($2, $4, @1.begin.line, @1.begin.column);
     } | LET OBJECT_IDENTIFIER COLON type IN expr{
-        $$ = new Let($2, $4, nullptr, $6);
+        $$ = new Let($2, $4, nullptr, $6, @1.begin.line, @1.begin.column);
     } | LET OBJECT_IDENTIFIER COLON type ASSIGN expr IN expr{
-        $$ = new Let($2, $4, $6, $8);
+        $$ = new Let($2, $4, $6, $8, @1.begin.line, @1.begin.column);
     } | NEW TYPE_IDENTIFIER{
-        $$ = new New($2);
+        $$ = new New($2, @1.begin.line, @1.begin.column);
     } | MINUS expr %prec UNARYMINUS{
-        $$ = new UnaryOp("-", $2);
+        $$ = new UnaryOp("-", $2, @2.begin.line, @2.begin.column);
     } | NOT expr{
-        $$ = new UnaryOp("not", $2);
+        $$ = new UnaryOp("not", $2, @2.begin.line, @2.begin.column);
     } | ISNULL expr{
-        $$ = new UnaryOp("isnull", $2);
+        $$ = new UnaryOp("isnull", $2, @2.begin.line, @2.begin.column);
     } | expr PLUS expr{
-        $$ = new BinaryOp("+", $1, $3);
+        $$ = new BinaryOp("+", $1, $3, @2.begin.line, @2.begin.column);
     } | expr MINUS expr{
-        $$ = new BinaryOp("-", $1, $3);
+        $$ = new BinaryOp("-", $1, $3, @2.begin.line, @2.begin.column);
     } | expr TIMES expr{
-        $$ = new BinaryOp("*", $1, $3);
+        $$ = new BinaryOp("*", $1, $3, @2.begin.line, @2.begin.column);
     } | expr DIV expr{
-        $$ = new BinaryOp("/", $1, $3);
+        $$ = new BinaryOp("/", $1, $3, @2.begin.line, @2.begin.column);
     } | expr POW expr{
-        $$ = new BinaryOp("^", $1, $3);
+        $$ = new BinaryOp("^", $1, $3, @2.begin.line, @2.begin.column);
     } | expr EQUAL expr{
-        $$ = new BinaryOp("=", $1, $3);
+        $$ = new BinaryOp("=", $1, $3, @2.begin.line, @2.begin.column);
     } | expr LOWER expr{
-        $$ = new BinaryOp("<", $1, $3);
+        $$ = new BinaryOp("<", $1, $3, @2.begin.line, @2.begin.column);
     } | expr LOWER_EQUAL expr{
-        $$ = new BinaryOp("<=", $1, $3);
+        $$ = new BinaryOp("<=", $1, $3, @2.begin.line, @2.begin.column);
     } | expr AND expr{
-        $$ = new BinaryOp("and", $1, $3);
+        $$ = new BinaryOp("and", $1, $3, @2.begin.line, @2.begin.column);
     } | SELF {
-        $$ = new Self();
+        $$ = new Self(@1.begin.line, @1.begin.column);
     } | LPAR RPAR{
-        $$ = new UnitExpr();
+        $$ = new UnitExpr(@1.begin.line, @1.begin.column);
     };
 
 expr_list:
