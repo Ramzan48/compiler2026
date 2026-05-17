@@ -1,0 +1,17 @@
+class Counter {
+    value : int32 <- 0;
+    inc() : int32 { value <- value + 1 }
+    get() : int32 { value }
+}
+class Main {
+    main() : int32 {
+        let c : Counter <- new Counter in {
+            c.inc();
+            c.inc();
+            c.inc();
+            printInt32(c.get());
+            print("\n");
+            0
+        }
+    }
+}

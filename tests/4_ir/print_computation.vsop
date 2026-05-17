@@ -1,0 +1,7 @@
+class Main {
+    main() : int32 {
+        printInt32(2 * 3 + 4);
+        print("\n");
+        0
+    }
+}

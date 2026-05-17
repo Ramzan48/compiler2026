@@ -1,0 +1,14 @@
+class Point {
+    x : int32 <- 1;
+    y : int32 <- 2;
+    sum() : int32 { x + y }
+}
+class Main {
+    main() : int32 {
+        let p : Point <- new Point in {
+            printInt32(p.sum());
+            print("\n");
+            0
+        }
+    }
+}

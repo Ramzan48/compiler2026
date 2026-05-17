@@ -17,6 +17,7 @@
 
 #include "ast.hpp"
 #include "parser.hpp"
+#include "type_checker.hpp"
 
 // Give prototype of yylex() function, then declare it.
 #define YY_DECL VSOP::Parser::symbol_type yylex()
@@ -32,7 +33,7 @@ namespace VSOP
          *
          * @param _source_file The file containing the source code.
          */
-        Driver(const std::string &_source_file) : program(nullptr), source_file(_source_file) {}
+        Driver(const std::string &_source_file) : program(nullptr), source_file(_source_file), tc(""){}
 
         /**
          * @brief Get the source file.
@@ -63,6 +64,8 @@ namespace VSOP
         void print_ast();
 
         bool semantic_check();
+
+        Class_table& get_class_table(){return tc.get_class_table();}
 
         Program* program;
 
@@ -95,6 +98,8 @@ namespace VSOP
          * @brief Stop the lexer.
          */
         void scan_end();
+
+        TypeChecker tc;
     };
 }
 

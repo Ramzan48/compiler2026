@@ -1,0 +1,10 @@
+class Main {
+    main() : int32 {
+        let x : int32 <- 1 in {
+            x <- 123;
+            printInt32(x);
+            print("\n");
+            0
+        }
+    }
+}

@@ -1,0 +1,15 @@
+class Animal {
+    name() : string { "Animal" }
+}
+class Dog extends Animal {
+    name() : string { "Dog" }
+}
+class Main {
+    main() : int32 {
+        let d : Dog <- new Dog in {
+            print(d.name());
+            print("\n");
+            0
+        }
+    }
+}

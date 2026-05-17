@@ -5,3 +5,6 @@ parser.cpp
 parser.hpp
 vsopc
 *.tar.xz
+
+*.md
+output/

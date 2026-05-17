@@ -1,0 +1,12 @@
+class Math {
+    add(a : int32, b : int32) : int32 { a + b }
+}
+class Main {
+    main() : int32 {
+        let m : Math <- new Math in {
+            printInt32(m.add(1, 2));
+            print("\n");
+            0
+        }
+    }
+}

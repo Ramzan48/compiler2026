@@ -1,0 +1,16 @@
+class Parent {
+    x : int32 <- 1;
+}
+class Child extends Parent {
+    y : int32 <- 2;
+    sum() : int32 { x + y }
+}
+class Main {
+    main() : int32 {
+        let c : Child <- new Child in {
+            printInt32(c.sum());
+            print("\n");
+            0
+        }
+    }
+}

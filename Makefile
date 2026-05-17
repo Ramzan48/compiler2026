@@ -12,7 +12,8 @@ SRC				= main.cpp \
 				  lexer.cpp \
 				  ast.cpp \
 				  type_checker.cpp \
-      			  symbol_table.cpp 
+      			  symbol_table.cpp \
+				  ir.cpp
 
 OBJ	  			= $(SRC:.cpp=.o)
 
@@ -32,6 +33,9 @@ ast.o: ast.hpp
 type_checker.o: type_checker.hpp symbol_table.hpp
 
 symbol_table.o: symbol_table.hpp
+
+ir.o: ir.hpp ast.hpp symbol_table.hpp
+
 
 $(EXEC): $(OBJ)
 	$(CXX) -o $@ $(LDFLAGS) $(OBJ)
@@ -54,4 +58,5 @@ clean:
 .PHONY: clean install-tools
 
 install-tools:
-	
+	mkdir -p $(HOME)/.vsop
+	cp object.ll $(HOME)/.vsop/object.ll

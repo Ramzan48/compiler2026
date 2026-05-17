@@ -37,12 +37,10 @@ class TypeChecker{
         std::string type_check_new(New* newexpr);
         std::string type_check_call(Call* call, Scope& scope);
 
-        //void get_expr_position(Expr* expr, int& line, int& col);
-
     public:
         TypeChecker(const std::string& filename);
         bool check(Program* program);
-       
+        Class_table& get_class_table(){return class_table;}
 };
 
 #endif

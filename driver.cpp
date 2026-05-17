@@ -171,7 +171,7 @@ void Driver::print_ast(){
     else cerr << "Error: No AST to print" << endl; 
 }
 
-bool VSOP::Driver::semantic_check(){
-    TypeChecker tc(source_file);
+bool Driver::semantic_check(){
+    tc = TypeChecker(source_file);
     return tc.check(program);
 }

@@ -1,0 +1,1 @@
+class Main {main() : int32 { 100 / 2 + 3 }}

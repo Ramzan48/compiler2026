@@ -1,7 +1,11 @@
 #include <iostream>
 #include <string>
 
+#include <fstream>
+#include <cstdlib>
+
 #include "driver.hpp"
+#include "ir.hpp"
 
 using namespace std;
 
@@ -9,13 +13,16 @@ enum class Mode
 {
     LEX,
     PARSE, 
-    SEM
+    SEM,
+    CODEGEN,
+    COMPILE
 };
 
 static const map<string, Mode> flag_to_mode = {
     {"-l", Mode::LEX},
     {"-p", Mode::PARSE},
     {"-c", Mode::SEM},
+    {"-i", Mode::CODEGEN}
 };
 
 int main(int argc, char const *argv[])
@@ -25,7 +32,7 @@ int main(int argc, char const *argv[])
 
     if (argc == 2)
     {
-        mode = Mode::PARSE;
+        mode = Mode::COMPILE;
         source_file = argv[1];
     }
     else if (argc == 3)
@@ -69,8 +76,39 @@ int main(int argc, char const *argv[])
             driver.print_ast();
             return 0;
         }
-        return 1; 
-    }
+        return 1;
+    case Mode::CODEGEN:
+        res = driver.parse();
+        if(res == 0 && driver.semantic_check()){
+            CodeGenerator codegen(driver.get_class_table());
+            string home = getenv("HOME") ? getenv("HOME") : ".";
+            string llvm_ir = codegen.generate(driver.program, home + "/.vsop/object.ll");
+            cout << llvm_ir;
+            return 0;
+        }
+        return 1;
+    case Mode::COMPILE:
+        res = driver.parse();
+        if(res == 0 && driver.semantic_check()){
+            CodeGenerator codegen(driver.get_class_table());
+            string home = getenv("HOME") ? getenv("HOME") : ".";
+            string ir = codegen.generate(driver.program, home + "/.vsop/object.ll");
+            string base = source_file;
+            size_t dot = base.find_last_of('.');
+            if(dot != string::npos) base = base.substr(0, dot);
+            string ll_file = base + ".ll";
+            {
+                ofstream out(ll_file);
+                out << ir;
+            }
 
+            string cmd = "clang -Wno-override-module " + ll_file + " -o " + base + " -lm";
+            int ret = system(cmd.c_str());
+            remove(ll_file.c_str());
+    
+            return ret == 0 ? 0 : 1;
+        }
+        return 1;
+    }
     return 0;
 }

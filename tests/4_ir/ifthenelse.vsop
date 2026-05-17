@@ -1,0 +1,1 @@
+class Main {main() : int32 { if 1 < 2 then 3 else 2 }}
